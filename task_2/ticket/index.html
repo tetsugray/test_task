@@ -4,19 +4,22 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
   <title>get ticket</title>
 </head>
 <body>
-  <section>
-    <div class="choose_ticket_option">
-      <p class="hide" id="no_option"></p>
-    </div>
-    <input id="num" placeholder="Введите число билетов">
-    <button id="btn">Посчитать</button>
-  </section>
-  <section class="result">
-
-  </section>
+  <main>
+    <section class="ticket">
+      <div class="choose_ticket_option">
+      </div>
+      <p id="no_options"></p>
+      <input id="num" placeholder="Введите число билетов">
+      <p id="wrong_amount"></p>
+      <button id="btn">Посчитать</button>
+    </section>
+    <section class="result">
+    </section>
+  </main>
   <script src="./index.js"></script>
 </body>
 </html>

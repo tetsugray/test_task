@@ -15,11 +15,11 @@ const tripLasting = 50
 const divForSelects = document.querySelector('.choose_ticket_option')
 // кнопка
 const btn = document.querySelector('#btn')
+const input = document.querySelector('#num')
 
 // функция получения значения
 const getValue = (select) => {
   return document.querySelector(select).value
-  // console.log(document.querySelector(select))
 }
 
 // РАБОТА С СЕЛЕКТАМИ
@@ -62,18 +62,9 @@ const hoursToMs = (hours) => {
 // расчёт времени прибытия
 const getArriveTime = (departureTime, lasting) => {
   const ms = hoursToMs(departureTime)
-  // console.log(ms)
   const res = new Date(ms + (lasting * 60 * 1000))
   return res
-  // console.log(res)
 }
-
-// пересчёт мс в секунды
-// const msToDate = (ms) => {
-//   return new Date(ms)
-// }
-
-// посчитать длительность пути
 
 
 // получаем из даты часов и минут строкой
@@ -87,16 +78,12 @@ const getStrHours = (date) => {
 function enabledTimes (data, value, lasting) {
   // для вывода при отсутствии доступных
   const noOptions = `
-    <p class="no_option">
-      Нет доступных по времени поездок обратно, пожалуйста, выберите другое время или поездку в одну сторону
-    </p>
+    Нет доступных по времени поездок обратно, пожалуйста,
+    выберите другое время или поездку в одну сторону.
   `
-  // время отправления в мс
-  // const departureTime = hoursToMs(value)
 
   // время прибытия
   const arriveTime = getStrHours(getArriveTime(value, lasting))
-  console.log(arriveTime)
   const enableTimeArr = []
 
   // перебор массива с временем по направлению из В в А
@@ -109,8 +96,12 @@ function enabledTimes (data, value, lasting) {
     }
     return enableTimeArr
   })
-  enableTimeArr.length === 0 ? divForSelects.insertAdjacentHTML('beforeend', noOptions)
-  : addSelect('timeback', 'Выберите время', enableTimeArr, 'из B в A')
+
+  if (enableTimeArr.length === 0) {
+    document.querySelector('#no_options').innerHTML = noOptions
+  }
+  document.querySelector('#no_options').innerHTML = ''
+  addSelect('timeback', 'Выберите время', enableTimeArr, 'из B в A')
 }
 
 
@@ -130,9 +121,11 @@ function getRoute() {
   // создание следующих селектов
   switch (routeValue) {
     case 'из A в B':
+      document.querySelector('#no_options').innerHTML = ''
       addSelect('time', 'Выберите время', timeFromAToB, routeValue)
       break
     case 'из B в A':
+      document.querySelector('#no_options').innerHTML = ''
       addSelect('time', 'Выберите время', timeFromBToA, routeValue)
       break
     case 'из A в B и обратно в А':
@@ -157,10 +150,16 @@ function getRoute() {
 
 // РАБОТА С ИНПУТОМ
 
-// ограничение ввода количества билетов
-// function checkInputValue () {
-//   getValue('.input')
-// }
+// ограничение количества билетов
+function checkInputValue () {
+  const error = `Введите значение в диапазоне от 1 до 30`
+  const inputValue = getValue('#num')
+  if (inputValue < 1 || inputValue > 30) {
+    document.querySelector('#wrong_amount').innerHTML = error
+    inputValue = ''
+  }
+  document.querySelector('#wrong_amount').innerHTML = ''
+}
 
 
 // ОБРАБОТЧИК СОБЫТИЯ ДЛЯ КНОПКИ
@@ -199,7 +198,7 @@ function getInfo () {
         Общая продолжительность ${lasting}.
         Отправление в ${timeValue}.
         Прибытие в ${getStrHours(getArriveTime(timeValue, tripLasting))}.
-
+        <br>
         Отправление в обратную сторону в ${timeBackValue}.
         Прибытие в ${getStrHours(getArriveTime(timeBackValue, tripLasting))}.
         </p>`
@@ -222,4 +221,5 @@ function getInfo () {
 
 addSelect('route', 'Выберите направление', route)
 document.querySelector('#route').addEventListener('change', getRoute)
+input.addEventListener('input', checkInputValue)
 btn.addEventListener('click', getInfo)
