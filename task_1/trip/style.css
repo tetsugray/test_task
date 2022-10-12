@@ -63,6 +63,10 @@ body {
   color: rgba(255, 255, 255, 1);
 }
 
+.tripcard__image_plate-hide {
+  display: none;
+}
+
 .tripcard__lasting {
   display: flex;
   align-items: center;
