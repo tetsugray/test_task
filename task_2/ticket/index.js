@@ -13,11 +13,14 @@ const timeFromBToA = [
 const tripLasting = 50
 // div для селектов
 const divForSelects = document.querySelector('.choose_ticket_option')
-// инпут
-const input = document.querySelector('#num')
 // кнопка
 const btn = document.querySelector('#btn')
 
+// функция получения значения
+const getValue = (select) => {
+  return document.querySelector(select).value
+  // console.log(document.querySelector(select))
+}
 
 // РАБОТА С СЕЛЕКТАМИ
 // добавить опции
@@ -58,7 +61,11 @@ const hoursToMs = (hours) => {
 
 // расчёт времени прибытия
 const getArriveTime = (departureTime, lasting) => {
-  return new Date(departureTime + (lasting * 60 * 1000))
+  const ms = hoursToMs(departureTime)
+  // console.log(ms)
+  const res = new Date(ms + (lasting * 60 * 1000))
+  return res
+  // console.log(res)
 }
 
 // пересчёт мс в секунды
@@ -85,17 +92,18 @@ function enabledTimes (data, value, lasting) {
     </p>
   `
   // время отправления в мс
-  const departureTime = hoursToMs(value)
+  // const departureTime = hoursToMs(value)
 
   // время прибытия
-  const arriveTime = getArriveTime(departureTime, tripLasting)
+  const arriveTime = getStrHours(getArriveTime(value, lasting))
+  console.log(arriveTime)
   const enableTimeArr = []
 
   // перебор массива с временем по направлению из В в А
   // сравниваем с временем прибытия, чтобы увидеть доступные
   data.forEach(el => {
     const backTime = hoursToMs(el)
-    if (backTime > arriveTime) {
+    if (backTime > hoursToMs(arriveTime)) {
       const backHour =  getStrHours(new Date(backTime)) 
       enableTimeArr.push(backHour)
     }
@@ -105,17 +113,11 @@ function enabledTimes (data, value, lasting) {
   : addSelect('timeback', 'Выберите время', enableTimeArr, 'из B в A')
 }
 
-// const getValue = () => {
-//   // const value = select.options[select.selectedIndex].value
-//   // const value = this.value
-//   console.log(this.value)
-// }
-
 
 // на основе выбранного направления создаются следующие селекты
 function getRoute() {
   // получаем значение из селекта
-  const routeValue = this.value
+  const routeValue = getValue('#route')
 
   // проверки и удаления селекторов, если уже было выбрано другое направление
   if (document.querySelector('#time')) {
@@ -146,8 +148,7 @@ function getRoute() {
             document.querySelector('.no_option').remove()
           }
           // получение значения из селекта
-          // у стрелочных функций нет контекста, this.value выведет значение селектора направления
-          const timeValue = document.querySelector('#time').value
+          const timeValue = getValue('#time')
           enabledTimes(timeFromBToA, timeValue, tripLasting)
         }
       )
@@ -157,51 +158,61 @@ function getRoute() {
 // РАБОТА С ИНПУТОМ
 
 // ограничение ввода количества билетов
-// input.addEventListener('input', (e) => {
-//   console.log(e.target.value.slice(-1).match(/[0-9]/))
-// })
+// function checkInputValue () {
+//   getValue('.input')
+// }
 
 
-// обработчик события для кнопки
-// сборка всех значений с селектов и инпута
+// ОБРАБОТЧИК СОБЫТИЯ ДЛЯ КНОПКИ
 function getInfo () {
-  document.querySelector('.result').insertAdjacentHTML('beforeend', '')
-  const routeValue = document.querySelector('#route').value
-  console.log(routeValue)
-  const timeValue = document.querySelector('#time').value
-  console.log(timeValue)
-  const timeBackValue = routeValue === 'из A в B и обратно в А'
-    ? document.querySelector('#timeback').value : null
-  console.log(timeBackValue)
+  // получение всех необходимых значений
+  const routeValue = getValue('#route')
+  const timeValue = getValue('#time')
+  const ticketAmount = getValue('#num')
+
+  // установка цены в зависимости от направления
+  // и расчёт полной
   const price = routeValue === 'из A в B и обратно в А' ? 1200 : 700
-  console.log(price)
+  const fullPrice = price * ticketAmount
+  // получение времени обратной поездки, если выбрано туда и обратно
+  const timeBackValue = routeValue === 'из A в B и обратно в А'
+    ? getValue('#timeback') : null
+  
+  // расчёт длительности поездки
   const minToHour = (min) => {
-    if (min <= 60) {
-      return `${min} мин`
-    } else {
-      const hour = Math.floor(((min) / 60))
-      const minutes = (min - (hour * 60))
-      return `${hour} ч ${minutes} мин`
+    if (min > 60) {
+      const hours = Math.floor(min / 60)
+      const minutes = (min - (hours * 60))
+      return `${hours} ч. ${minutes} мин.`
     }
+    return `${min} мин.`
   }
+
   const lasting = routeValue === 'из A в B и обратно в А'
     ? minToHour(tripLasting * 2)
     : minToHour(tripLasting)
-  console.log(lasting)
-  const ticketAmount = input.value
-  console.log(ticketAmount)
-  const fullPrice = price * ticketAmount
-  console.log(fullPrice)
+  
+  
+  // заполнение информации о времени и длительности поездки
   const pTime = timeBackValue
       ? `<p>
-        Продолжительность ${lasting}. Отправление в ${timeValue}. Прибытие в ${getArriveTime(timeValue)}.
-        Отправление в обратную сторону в ${timeBackValue}. Прибытие в ${getArriveTime(timeBackValue)}.
+        Общая продолжительность ${lasting}.
+        Отправление в ${timeValue}.
+        Прибытие в ${getStrHours(getArriveTime(timeValue, tripLasting))}.
+
+        Отправление в обратную сторону в ${timeBackValue}.
+        Прибытие в ${getStrHours(getArriveTime(timeBackValue, tripLasting))}.
         </p>`
-      : `<p>Продолжительность ${lasting}. Отправление в ${timeValue}.</p>`
+      : `<p>Продолжительность ${lasting}.
+        Отправление в ${timeValue}.
+        Прибытие в ${getStrHours(getArriveTime(timeValue, tripLasting))}.</p>`
+
+  // полная информация по выбранным билетам
   const result = `
     <p>
     Вы выбрали маршрут ${routeValue}, стоимостью ${price} рублей, количество билетов: ${ticketAmount}.
     </p>
+    <p>Общая стоимость: ${fullPrice} руб.</p>
     <p>
       ${pTime}
     </p>
@@ -210,6 +221,5 @@ function getInfo () {
 }
 
 addSelect('route', 'Выберите направление', route)
-const selectRoute = document.querySelector('#route')
-selectRoute.addEventListener('change', getRoute)
+document.querySelector('#route').addEventListener('change', getRoute)
 btn.addEventListener('click', getInfo)
